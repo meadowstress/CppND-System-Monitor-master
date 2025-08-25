@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <cstddef>
+#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
@@ -23,7 +24,13 @@ You need to properly format the uptime. Refer to the comments mentioned in
 format. cpp for formatting the uptime.*/
 
 // TODO: Return the system's CPU
-Processor& System::Cpu() { return cpu_; }
+Processor& System::Cpu() {
+  // for (int i = 0; i < 20; i++) {
+  //   std::cout << std::endl;
+  // }
+  // std::cout << "\n CPU. = " << cpu_.Utilization() << std::endl;
+  return cpu_;
+}
 
 // TODO: Return a container composed of the system's processes
 vector<Process>& System::Processes() { return processes_; }
@@ -38,10 +45,30 @@ float System::MemoryUtilization() { return LinuxParser::MemoryUtilization(); }
 std::string System::OperatingSystem() { return LinuxParser::OperatingSystem(); }
 
 // TODO: Return the number of processes actively running on the system
-int System::RunningProcesses() { return 0; }
+int System::RunningProcesses() {
+  // for (int i = 0; i < 1; i++) {
+  //   std::cout << std::endl;
+  // }
+  // std::cout << "\nRunningProcesses = " << LinuxParser::RunningProcesses()
+  //           << std::endl;
+  return LinuxParser::RunningProcesses();
+}
 
 // TODO: Return the total number of processes on the system
-int System::TotalProcesses() { return 0; }
+int System::TotalProcesses() {
+  // for (int i = 0; i < 30; i++) {
+  //   std::cout << std::endl;
+  // }
+  // std::cout << "\nTotalProcesses = " << LinuxParser::TotalProcesses()
+  //           << std::endl;
+  return LinuxParser::TotalProcesses();
+}
 
 // TODO: Return the number of seconds since the system started running
-long int System::UpTime() { return 0; }
+long int System::UpTime() {
+  // for (int i = 0; i < 1; i++) {
+  //   std::cout << std::endl;
+  // }
+  // std::cout << "\nUpTime = " << LinuxParser::UpTime() << std::endl;
+  return LinuxParser::UpTime();
+}
