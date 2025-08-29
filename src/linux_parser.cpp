@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -156,11 +157,41 @@ int LinuxParser::RunningProcesses() {
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Command(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Command(int pid [[maybe_unused]]) {
+  string result{}, number{}, line{}, label{};
+  std::vector<string> data{};
+
+  std::ifstream stream(kProcDirectory + std::to_string(pid) + kCmdlineFilename);
+
+  if (std::getline(stream, line)) {
+    result = line;
+  }
+
+  return (result);
+}
 
 // TODO: Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Ram(int pid [[maybe_unused]]) {
+  string result{}, number{}, line{}, label{};
+  std::vector<string> data{};
+
+  std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatusFilename);
+
+  while (std::getline(stream, line)) {
+    std::istringstream linestream(line);
+    linestream >> label >> number;
+    if (label == "VmSize:") {
+      result = number;
+    }
+  }
+  if (result != "") {
+    int conversion_kilo_to_megabyte =
+        static_cast<int>(std::stof(result) / 1000.F);
+    result = std::to_string(conversion_kilo_to_megabyte);
+  }
+  return (result);
+}
 
 // TODO: Read and return the user ID associated with a process
 string LinuxParser::Uid(int pid [[maybe_unused]]) {
@@ -207,4 +238,31 @@ string LinuxParser::User(int uid) {
 
 // TODO: Read and return the uptime of a process
 // REMOVE: [[maybe_unused]] once you define the function
-// long LinuxParser::UpTime(int pid [[maybe_unused]]) { return 0; }
+long LinuxParser::UpTime(int pid [[maybe_unused]]) {
+  long ticks_per_second = sysconf(_SC_CLK_TCK);
+
+  if (ticks_per_second == -1) {
+    std::cerr << "Error retrieving clock ticks per second: " << errno
+              << std::endl;
+    return 1;
+  }
+
+  long result{};
+  float jiffies{};
+  string buffer{}, line{};
+  std::vector<string> data{};
+
+  std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
+
+  if (std::getline(stream, line)) {
+    std::istringstream linestream(line);
+
+    for (int i = 0; i < 22; i++) {
+      linestream >> buffer;
+    }
+    jiffies = std::stof(buffer);
+    result =
+        static_cast<long>((jiffies / static_cast<float>(ticks_per_second)));
+  }
+  return (result);
+}

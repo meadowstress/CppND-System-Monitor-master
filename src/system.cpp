@@ -32,11 +32,23 @@ Processor& System::Cpu() {
   return cpu_;
 }
 
+bool compare(Process const& a, Process const& b) { return (a < b); }
+
 // TODO: Return a container composed of the system's processes
 vector<Process>& System::Processes() {
   for (auto process_id : LinuxParser::Pids()) {
     processes_.emplace_back(Process(process_id));
   }
+
+  for (auto process : processes_) {
+    process.CpuUtilization();
+    process.Command();
+    process.Ram();
+    process.User();
+    process.UpTime();
+  }
+  std::sort(processes_.begin(), processes_.end(), compare);
+
   return processes_;
 }
 
