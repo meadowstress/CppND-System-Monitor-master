@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <cctype>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -41,16 +42,22 @@ float Process::CpuUtilization() {
     linestream >> starttime;
   }
 
-  const float Hertz =
-      100.0F;  // constant taken from bash commandline via getconf CLK_TCK
+  long Hertz = sysconf(_SC_CLK_TCK);
+
+  if (Hertz == -1) {
+    std::cerr << "Error retrieving clock ticks per second: " << errno
+              << std::endl;
+    return 1.F;
+  }
+
+  float system_up_time = static_cast<float>(LinuxParser::UpTime());
   float total_time = utime + stime;
   total_time = total_time + cutime + cstime;
-  float seconds = std::abs(utime - (starttime / Hertz));
-  float cpu_usage = (total_time / (Hertz * seconds));
+  float seconds = system_up_time - (starttime / Hertz);
 
-  cpu_utilization_ = cpu_usage;
+  cpu_utilization_ = (total_time / (Hertz * seconds));
 
-  return cpu_usage;
+  return cpu_utilization_;
 }
 
 // TODO: Return the command that generated this process
@@ -64,7 +71,7 @@ string Process::Ram() { return LinuxParser::Ram(pid_); }
 
 // TODO: Return the user (name) that generated this process
 string Process::User() {
-  user_ = LinuxParser::User(std::stoi(LinuxParser::Uid(pid_)));
+  user_ = LinuxParser::User(LinuxParser::Uid(pid_));
   return user_;
 }
 
@@ -76,9 +83,9 @@ long int Process::UpTime() {
 
 // TODO: Overload the "less than" comparison operator for Process objects
 // REMOVE: [[maybe_unused]] once you define the function
-bool Process::operator<(Process const& a [[maybe_unused]]) const {
+bool Process::operator<(Process const& a) const {
   bool result{false};
-  if (this->ram_ < a.ram_) {
+  if (this->cpu_utilization_ < a.cpu_utilization_) {
     result = true;
   } else {
     result = false;
