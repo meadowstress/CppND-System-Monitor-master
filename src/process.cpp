@@ -3,6 +3,8 @@
 #include <unistd.h>
 
 #include <cctype>
+#include <cerrno>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -82,13 +84,10 @@ long int Process::UpTime() {
 }
 
 // TODO: Overload the "less than" comparison operator for Process objects
-// REMOVE: [[maybe_unused]] once you define the function
 bool Process::operator<(Process const& a) const {
-  bool result{false};
-  if (this->cpu_utilization_ < a.cpu_utilization_) {
-    result = true;
-  } else {
-    result = false;
-  }
-  return result;
+  return this->cpu_utilization_ < a.cpu_utilization_;
+}
+
+bool Process::operator>(Process const& a) const {
+  return this->cpu_utilization_ > a.cpu_utilization_;
 }

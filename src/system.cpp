@@ -26,8 +26,6 @@ format. cpp for formatting the uptime.*/
 // TODO: Return the system's CPU
 Processor& System::Cpu() { return cpu_; }
 
-bool compare(Process const& a, Process const& b) { return (a < b); }
-
 // TODO: Return a container composed of the system's processes
 vector<Process>& System::Processes() {
   for (auto process_id : LinuxParser::Pids()) {
@@ -41,7 +39,8 @@ vector<Process>& System::Processes() {
     process.User();
     process.UpTime();
   }
-  std::sort(processes_.begin(), processes_.end(), compare);
+  std::sort(processes_.begin(), processes_.end(),
+            [](Process const& a, Process const& b) { return (a > b); });
 
   return processes_;
 }
