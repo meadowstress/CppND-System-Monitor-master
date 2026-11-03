@@ -113,7 +113,8 @@ long LinuxParser::UpTime() {
 
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() {
-  long total_jiffies{};
+  long total_jiffies{}, user{}, nice{}, system{}, idle{}, iowait{}, irq{},
+      softirq{}, steal{};
   std::ifstream stream(LinuxParser::kProcDirectory +
                        LinuxParser::kStatFilename);
   if (stream.is_open()) {
@@ -123,10 +124,7 @@ long LinuxParser::Jiffies() {
     std::istringstream ss(line);
     std::string cpu;
     ss >> cpu;  // Skip the "cpu" part
-
-    long user, nice, system, idle, iowait, irq, softirq, steal;
     ss >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal;
-
     // Calculate total and active time
     total_jiffies =
         user + nice + system + idle + iowait + irq + softirq + steal;
@@ -141,21 +139,18 @@ long LinuxParser::ActiveJiffies(int pid [[maybe_unused]]) { return 0; }
 
 // TODO: Read and return the number of active jiffies for the system
 long LinuxParser::ActiveJiffies() {
-  long active_time{};
+  long active_time{}, user{}, nice{}, system{}, idle{}, iowait{}, irq{},
+      softirq{}, steal{};
   std::ifstream stream(LinuxParser::kProcDirectory +
                        LinuxParser::kStatFilename);
 
   if (stream.is_open()) {
     std::string line;
     std::getline(stream, line);  // Read the first line
-
     std::istringstream ss(line);
     std::string cpu;
     ss >> cpu;  // Skip the "cpu" part
-
-    long user, nice, system, idle, iowait, irq, softirq, steal;
     ss >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal;
-
     active_time = user + nice + system + irq + softirq + steal;
   }
 
@@ -164,21 +159,20 @@ long LinuxParser::ActiveJiffies() {
 
 // TODO: Read and return the number of idle jiffies for the system
 long LinuxParser::IdleJiffies() {
-  long idle{};
+  long idle_jiffies{}, idle{}, user{}, nice{}, system{}, iowait{}, irq{},
+      softirq{}, steal{};
   std::ifstream stream(LinuxParser::kProcDirectory +
                        LinuxParser::kStatFilename);
   if (stream.is_open()) {
     std::string line;
     std::getline(stream, line);  // Read the first line
-
     std::istringstream ss(line);
     std::string cpu;
     ss >> cpu;  // Skip the "cpu" part
-
-    long user, nice, system, iowait, irq, softirq, steal;
     ss >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal;
   }
-  return (idle);
+  idle_jiffies = idle + iowait;
+  return (idle_jiffies);
 }
 
 // TODO: Read and return CPU utilization
@@ -227,7 +221,7 @@ int LinuxParser::RunningProcesses() {
       data.push_back(number);
     }
 
-    const size_t kRelevantElement = 10u;
+    const size_t kRelevantElement = 9u;
     if (kRelevantElement < data.size()) {
       num_running_processes = data.at(kRelevantElement);
     }
@@ -253,7 +247,6 @@ string LinuxParser::Command(int pid) {
 }
 
 // TODO: Read and return the memory used by a process
-// REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Ram(int pid) {
   string result{}, number{}, line{}, label{};
   std::vector<string> data{};
@@ -299,7 +292,6 @@ int LinuxParser::Uid(int pid) {
 }
 
 // TODO: Read and return the user associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::User(int uid) {
   string result{}, pwd{}, line{}, label{};
   int user_id{};
@@ -326,7 +318,6 @@ string LinuxParser::User(int uid) {
 }
 
 // TODO: Read and return the uptime of a process
-// REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::UpTime(int pid) {
   long ticks_per_second = sysconf(_SC_CLK_TCK);
 
@@ -336,10 +327,11 @@ long LinuxParser::UpTime(int pid) {
     return 1;
   }
 
-  long result{};
+  long process_uptime{};
   float jiffies{};
   string buffer{}, line{};
   std::vector<string> data{};
+  long system_uptime = LinuxParser::UpTime();  // Get the system uptime
 
   std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
   if (stream.is_open()) {
@@ -350,9 +342,10 @@ long LinuxParser::UpTime(int pid) {
         linestream >> buffer;
       }
       jiffies = std::stof(buffer);
-      result =
+      process_uptime =
+          system_uptime -
           static_cast<long>((jiffies / static_cast<float>(ticks_per_second)));
     }
   }
-  return (result);
+  return (process_uptime);
 }

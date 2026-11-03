@@ -19,7 +19,6 @@ class Process {
 
   Process(int pid)
       : pid_{pid},
-        uid_{0},
         cpu_utilization_{0.0f},
         command_{},
         user_{},
@@ -29,7 +28,6 @@ class Process {
   // TODO: Declare any necessary private members
  private:
   int pid_;
-  int uid_;
   float cpu_utilization_;
   std::string command_;
   std::string user_;
