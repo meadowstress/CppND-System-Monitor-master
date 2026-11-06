@@ -256,7 +256,7 @@ string LinuxParser::Ram(int pid) {
     while (std::getline(stream, line)) {
       std::istringstream linestream(line);
       linestream >> label >> number;
-      if (label == "VmSize:") {
+      if (label == "VmRSS:") {
         result = number;
       }
     }
@@ -273,22 +273,19 @@ string LinuxParser::Ram(int pid) {
 int LinuxParser::Uid(int pid) {
   string line{}, label{};
   int number{}, result{};
-  std::vector<int> data{};
+  // std::vector<int> data{};
 
   std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatusFilename);
   if (stream.is_open()) {
     while (std::getline(stream, line)) {
       std::istringstream linestream(line);
       linestream >> label >> number;
-      data.push_back(number);
-    }
-
-    const size_t kRelevantElement = 9u;
-    if (kRelevantElement < data.size()) {
-      result = data.at(kRelevantElement);
+      if (label == "Uid:") {
+        result = number;
+      }
     }
   }
-  return result;
+  return (result);
 }
 
 // TODO: Read and return the user associated with a process
